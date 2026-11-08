@@ -1,12 +1,30 @@
 ﻿import tkinter as tk
 from tkinter import colorchooser
 from tkinter import filedialog
-from tkinter import messagebox
+from tkinter import messagebox, simpledialog
 from tkinter import ttk
 
 from PIL import Image, ImageTk
 
 from src.config_manager import load_config, save_config
+
+from src.agenda import (
+    agregar_contacto,
+    buscar_contacto,
+    modificar_contacto,
+    campos,
+    tamaño_registro,
+    archivo_contactos,
+    archivo_indice,
+    archivo_hash
+)
+from src.exportaciones import exportar_json, exportar_pdf
+from src.herramientas import (
+    crear_respaldo,
+    obtener_informacion_archivo,
+    archivo_respaldo
+)
+from src.integridad import obtener_estado_integridad
 
 
 config = {}
@@ -206,9 +224,9 @@ def obtener_texto(clave):
             "claro": "light",
             "oscuro": "dark",
             "descripcion": "With this application you can manage your settings and customize your experience",
-            "archivo": "File",
-            "edicion": "Edit",
-            "ver": "View",
+            "archivo": "Contacts",
+            "edicion": "Export",
+            "ver": "Tools",
             "personalizacion": "Text customization",
             "elemento": "Element:",
             "tamano": "Size:",
@@ -220,9 +238,70 @@ def obtener_texto(clave):
             "descripcion_elemento": "Description",
             "nombre_elemento": "Username",
             "configuracion_elemento": "Settings button",
-            "archivo_elemento": "File button",
-            "edicion_elemento": "Edit button",
-            "ver_elemento": "View button"
+            "archivo_elemento": "Contacts button",
+            "edicion_elemento": "Export button",
+            "ver_elemento": "Tools button",
+            "error": "Error",
+
+            "agregar": "Add contact",
+            "buscar": "Search by ID",
+            "modificar": "Modify contact",
+            "exportar_json": "Export to JSON",
+            "exportar_pdf": "Export to PDF",
+            "salir": "Exit",
+            "verificar": "Verify integrity",
+            "respaldo": "Create ZIP backup",
+            "informacion": "File information",
+            "ayuda": "Help",
+            "datos_contacto": "Contact information",
+            "campo_id": "ID",
+            "campo_nombre": "Name",
+            "campo_telefono": "Phone",
+            "campo_email": "Email",
+            "campo_ciudad": "City",
+            "guardar_contacto": "Save",
+            "datos_incompletos": "Incomplete information",
+            "completar_campos": "Please complete all fields.",
+            "campo_largo": "Field too long",
+            "id_largo": "ID too long",
+            "agenda": "Contacts",
+            "guardado": "The contact was saved successfully.",
+            "modificado": "The contact was modified successfully.",
+            "posicion": "Record position",
+            "error_guardar": "Could not save the contact.",
+            "buscar_contacto": "Search contact",
+            "ingresar_id": "Enter the contact ID:",
+            "contacto_encontrado": "Contact found",
+            "busqueda": "Search",
+            "exportacion_json": "JSON export",
+            "exportacion_pdf": "PDF export",
+            "json_correcto": "Contacts were exported successfully.",
+            "pdf_correcto": "The PDF was generated successfully.",
+            "archivo_texto": "File",
+            "integridad": "Integrity",
+            "advertencia_integridad": "WARNING: An integrity issue was detected.",
+            "integridad_correcta": "The integrity check was completed successfully.",
+            "error_integridad": "Could not verify data integrity.",
+            "respaldo_zip": "ZIP backup",
+            "respaldo_correcto": "The backup was created successfully.",
+            "tamano_original": "Original size",
+            "tamano_comprimido": "Compressed size",
+            "informacion_archivos": "File information",
+            "ultima_modificacion": "Last modified",
+            "lectura": "Read access",
+            "escritura": "Write access",
+            "si": "Yes",
+            "no": "No",
+            "ayuda_titulo": "Random-access contact manager",
+            "ayuda_descripcion": (
+                "You can add, search for, and modify contacts using their ID. "
+                "You can also export the contact list to JSON or PDF, verify "
+                "data integrity, and create ZIP backups."
+            ),
+            "tamano_registro": "Record size",
+            "tamano_campos": "Field sizes",
+            "bytes": "bytes",
+            "error": "Error",
         }
 
     else:
@@ -243,9 +322,9 @@ def obtener_texto(clave):
             "claro": "claro",
             "oscuro": "oscuro",
             "descripcion": "Con esta aplicación puedes gestionar tu configuración y personalizar tu experiencia",
-            "archivo": "Archivo",
-            "edicion": "Edición",
-            "ver": "Ver",
+            "archivo": "Contactos",
+            "edicion": "Exportar",
+            "ver": "Herramientas",
             "personalizacion": "Personalización de textos",
             "elemento": "Elemento:",
             "tamano": "Tamaño:",
@@ -257,9 +336,69 @@ def obtener_texto(clave):
             "descripcion_elemento": "Descripción",
             "nombre_elemento": "Nombre de usuario",
             "configuracion_elemento": "Botón Configuración",
-            "archivo_elemento": "Botón Archivo",
-            "edicion_elemento": "Botón Edición",
-            "ver_elemento": "Botón Ver"
+            "archivo_elemento": "Botón Contactos",
+            "edicion_elemento": "Botón Exportar",
+            "ver_elemento": "Botón Herramientas",
+
+            "agregar": "Agregar contacto",
+            "buscar": "Buscar por ID",
+            "modificar": "Modificar contacto",
+            "exportar_json": "Exportar a JSON",
+            "exportar_pdf": "Exportar a PDF",
+            "salir": "Salir",
+            "verificar": "Verificar integridad",
+            "respaldo": "Crear respaldo ZIP",
+            "informacion": "Información de archivos",
+            "ayuda": "Ayuda",
+            "datos_contacto": "Datos del contacto",
+            "campo_id": "ID",
+            "campo_nombre": "Nombre",
+            "campo_telefono": "Teléfono",
+            "campo_email": "Correo electrónico",
+            "campo_ciudad": "Ciudad",
+            "guardar_contacto": "Guardar",
+            "datos_incompletos": "Datos incompletos",
+            "completar_campos": "Completa todos los campos.",
+            "campo_largo": "Campo demasiado largo",
+            "id_largo": "ID demasiado largo",
+            "agenda": "Agenda",
+            "guardado": "El contacto se guardó correctamente.",
+            "modificado": "El contacto se modificó correctamente.",
+            "posicion": "Posición del registro",
+            "error_guardar": "No se pudo guardar el contacto.",
+            "buscar_contacto": "Buscar contacto",
+            "ingresar_id": "Ingresa el ID del contacto:",
+            "contacto_encontrado": "Contacto encontrado",
+            "busqueda": "Búsqueda",
+            "exportacion_json": "Exportación JSON",
+            "exportacion_pdf": "Exportación PDF",
+            "json_correcto": "Los contactos se exportaron correctamente.",
+            "pdf_correcto": "El PDF se generó correctamente.",
+            "archivo_texto": "Archivo",
+            "integridad": "Integridad",
+            "advertencia_integridad": "ADVERTENCIA: Se detectó un problema de integridad.",
+            "integridad_correcta": "La comprobación de integridad finalizó correctamente.",
+            "error_integridad": "No se pudo comprobar la integridad.",
+            "respaldo_zip": "Respaldo ZIP",
+            "respaldo_correcto": "El respaldo se creó correctamente.",
+            "tamano_original": "Tamaño original",
+            "tamano_comprimido": "Tamaño comprimido",
+            "informacion_archivos": "Información de archivos",
+            "ultima_modificacion": "Última modificación",
+            "lectura": "Lectura",
+            "escritura": "Escritura",
+            "si": "Sí",
+            "no": "No",
+            "ayuda_titulo": "Agenda de contactos con acceso aleatorio",
+            "ayuda_descripcion": (
+                "Puedes agregar, buscar y modificar contactos mediante su ID. "
+                "También puedes exportar la agenda a JSON o PDF, comprobar la "
+                "integridad de los datos y crear respaldos ZIP."
+            ),
+            "tamano_registro": "Tamaño de cada registro",
+            "tamano_campos": "Tamaño de los campos",
+            "bytes": "bytes",
+            "error": "Error"
         }
 
     return textos[clave]
@@ -1125,45 +1264,457 @@ def mostrar_settings():
     )
 
 
-def mostrar_menu_archivo(): # menu simulado de archivo
 
-    menu = tk.Menu(
-        root,
-        tearoff=0
+def colores_ventana():
+    if config.get("tema_interfaz") == "oscuro":
+        return "#222222", "#ffffff"
+
+    return "#ffffff", "#222222"
+
+
+def mostrar_formulario_contacto(contacto=None):
+
+    nuevo = contacto is None
+    fondo, texto = colores_ventana()
+
+    ventana = tk.Toplevel(root)
+    ventana.title(
+        obtener_texto("agregar") if nuevo
+        else obtener_texto("modificar")
+    )
+    ventana.geometry("420x390")
+    ventana.resizable(False, False)
+    ventana.configure(bg=fondo)
+    ventana.transient(root)
+    ventana.grab_set()
+
+    tk.Label(
+        ventana,
+        text=obtener_texto("datos_contacto"),
+        bg=fondo,
+        fg=texto,
+        font=("Arial", 14, "bold")
+    ).pack(pady=(18, 12))
+
+    campos_formulario = [
+        ("id", "campo_id"),
+        ("nombre", "campo_nombre"),
+        ("telefono", "campo_telefono"),
+        ("email", "campo_email"),
+        ("ciudad", "campo_ciudad")
+    ]
+
+    entradas = {}
+
+    marco = tk.Frame(ventana, bg=fondo)
+    marco.pack(fill="x", padx=28)
+
+    for clave, clave_texto in campos_formulario:
+
+        fila = tk.Frame(marco, bg=fondo)
+        fila.pack(fill="x", pady=5)
+
+        tk.Label(
+            fila,
+            text=obtener_texto(clave_texto),
+            bg=fondo,
+            fg=texto,
+            width=16,
+            anchor="w"
+        ).pack(side="left")
+
+        entrada = tk.Entry(fila, width=29)
+        entrada.pack(side="left", fill="x", expand=True)
+
+        if contacto is not None:
+            entrada.insert(0, str(contacto[clave]))
+
+        if clave == "id" and not nuevo:
+            entrada.configure(state="disabled")
+
+        entradas[clave] = entrada
+
+    def guardar():
+
+        valores = {}
+
+        for clave, entrada in entradas.items():
+
+            if clave == "id" and not nuevo:
+                valores[clave] = str(contacto["id"])
+            else:
+                valores[clave] = entrada.get().strip()
+
+        if any(not valor for valor in valores.values()):
+
+            messagebox.showwarning(
+                obtener_texto("datos_incompletos"),
+                obtener_texto("completar_campos"),
+                parent=ventana
+            )
+            return
+
+        try:
+
+            valores["id"] = int(valores["id"])
+
+            nombres_campos = {
+                "nombre": obtener_texto("campo_nombre"),
+                "telefono": obtener_texto("campo_telefono"),
+                "email": obtener_texto("campo_email"),
+                "ciudad": obtener_texto("campo_ciudad")
+            }
+
+            for clave in ("nombre", "telefono", "email", "ciudad"):
+
+                if len(valores[clave].encode("utf-8")) > campos[clave]:
+
+                    messagebox.showwarning(
+                        obtener_texto("campo_largo"),
+                        f"{nombres_campos[clave]}: "
+                        f"{campos[clave]} {obtener_texto('bytes')} "
+                        f"(UTF-8).",
+                        parent=ventana
+                    )
+                    return
+
+            if len(str(valores["id"]).encode("utf-8")) > campos["id"]:
+
+                messagebox.showwarning(
+                    obtener_texto("id_largo"),
+                    f"{obtener_texto('campo_id')}: "
+                    f"{campos['id']} {obtener_texto('bytes')}.",
+                    parent=ventana
+                )
+                return
+
+            if nuevo:
+
+                posicion = agregar_contacto(valores)
+                mensaje = obtener_texto("guardado")
+
+            else:
+
+                posicion = modificar_contacto(
+                    valores["id"],
+                    {
+                        "nombre": valores["nombre"],
+                        "telefono": valores["telefono"],
+                        "email": valores["email"],
+                        "ciudad": valores["ciudad"]
+                    }
+                )
+
+                mensaje = obtener_texto("modificado")
+
+            mensaje += (
+                f"\n{obtener_texto('posicion')}: {posicion}"
+            )
+
+            messagebox.showinfo(
+                obtener_texto("agenda"),
+                mensaje,
+                parent=ventana
+            )
+
+            ventana.destroy()
+
+        except ValueError as error:
+
+            messagebox.showerror(
+                obtener_texto("error_guardar"),
+                str(error),
+                parent=ventana
+            )
+
+        except (OSError, KeyError) as error:
+
+            messagebox.showerror(
+                obtener_texto("error"),
+                f"{obtener_texto('error_guardar')}\n{error}",
+                parent=ventana
+            )
+
+    tk.Button(
+        ventana,
+        text=obtener_texto("guardar_contacto"),
+        command=guardar,
+        width=16,
+        cursor="hand2"
+    ).pack(pady=20)
+
+
+def agregar_contacto_ui():
+
+    mostrar_formulario_contacto()
+
+
+def buscar_contacto_ui():
+
+    identificador = simpledialog.askinteger(
+        obtener_texto("buscar_contacto"),
+        obtener_texto("ingresar_id"),
+        parent=root,
+        minvalue=0
+    )
+
+    if identificador is None:
+        return
+
+    try:
+
+        contacto, posicion = buscar_contacto(identificador)
+
+        detalle = (
+            f"{obtener_texto('campo_id')}: {contacto['id']}\n"
+            f"{obtener_texto('campo_nombre')}: {contacto['nombre']}\n"
+            f"{obtener_texto('campo_telefono')}: {contacto['telefono']}\n"
+            f"{obtener_texto('campo_email')}: {contacto['email']}\n"
+            f"{obtener_texto('campo_ciudad')}: {contacto['ciudad']}\n\n"
+            f"{obtener_texto('posicion')}: {posicion}"
+        )
+
+        messagebox.showinfo(
+            obtener_texto("contacto_encontrado"),
+            detalle,
+            parent=root
+        )
+
+    except (ValueError, OSError) as error:
+
+        messagebox.showerror(
+            obtener_texto("busqueda"),
+            str(error),
+            parent=root
+        )
+
+
+def modificar_contacto_ui():
+
+    identificador = simpledialog.askinteger(
+        obtener_texto("modificar"),
+        obtener_texto("ingresar_id"),
+        parent=root,
+        minvalue=0
+    )
+
+    if identificador is None:
+        return
+
+    try:
+
+        contacto, posicion = buscar_contacto(identificador)
+        mostrar_formulario_contacto(contacto)
+
+    except (ValueError, OSError) as error:
+
+        messagebox.showerror(
+            obtener_texto("modificar"),
+            str(error),
+            parent=root
+        )
+
+
+def exportar_json_ui():
+
+    try:
+
+        ruta = exportar_json()
+
+        messagebox.showinfo(
+            obtener_texto("exportacion_json"),
+            f"{obtener_texto('json_correcto')}\n\n"
+            f"{obtener_texto('archivo_texto')}:\n{ruta}",
+            parent=root
+        )
+
+    except (ValueError, OSError, KeyError) as error:
+
+        messagebox.showerror(
+            obtener_texto("exportacion_json"),
+            str(error),
+            parent=root
+        )
+
+
+def exportar_pdf_ui():
+
+    try:
+
+        ruta = exportar_pdf()
+
+        messagebox.showinfo(
+            obtener_texto("exportacion_pdf"),
+            f"{obtener_texto('pdf_correcto')}\n\n"
+            f"{obtener_texto('archivo_texto')}:\n{ruta}",
+            parent=root
+        )
+
+    except (ValueError, OSError, KeyError) as error:
+
+        messagebox.showerror(
+            obtener_texto("exportacion_pdf"),
+            str(error),
+            parent=root
+        )
+
+
+def verificar_integridad_ui():
+
+    try:
+
+        estado = obtener_estado_integridad()
+
+        if estado.startswith("ADVERTENCIA"):
+
+            mensaje = obtener_texto("advertencia_integridad")
+
+            messagebox.showwarning(
+                obtener_texto("integridad"),
+                mensaje,
+                parent=root
+            )
+
+        else:
+
+            mensaje = obtener_texto("integridad_correcta")
+
+            messagebox.showinfo(
+                obtener_texto("integridad"),
+                mensaje,
+                parent=root
+            )
+
+    except (OSError, ValueError) as error:
+
+        messagebox.showerror(
+            obtener_texto("integridad"),
+            f"{obtener_texto('error_integridad')}\n{error}",
+            parent=root
+        )
+
+
+def crear_respaldo_ui():
+
+    try:
+
+        resultado = crear_respaldo()
+
+        mensaje = (
+            f"{obtener_texto('respaldo_correcto')}\n\n"
+            f"{obtener_texto('archivo_texto')}: {resultado['ruta']}\n"
+            f"{obtener_texto('tamano_original')}: "
+            f"{resultado['tamaño_original']} bytes\n"
+            f"{obtener_texto('tamano_comprimido')}: "
+            f"{resultado['tamaño_comprimido']} bytes"
+        )
+
+        messagebox.showinfo(
+            obtener_texto("respaldo_zip"),
+            mensaje,
+            parent=root
+        )
+
+    except (OSError, ValueError) as error:
+
+        messagebox.showerror(
+            obtener_texto("respaldo_zip"),
+            str(error),
+            parent=root
+        )
+
+
+def mostrar_informacion_archivos_ui():
+
+    archivos = [
+        archivo_contactos,
+        archivo_indice,
+        archivo_hash
+    ]
+
+    if archivo_respaldo.exists():
+        archivos.append(archivo_respaldo)
+
+    lineas = []
+
+    for ruta in archivos:
+
+        try:
+
+            informacion = obtener_informacion_archivo(ruta)
+
+            lectura = (
+                obtener_texto("si")
+                if informacion["lectura"]
+                else obtener_texto("no")
+            )
+
+            escritura = (
+                obtener_texto("si")
+                if informacion["escritura"]
+                else obtener_texto("no")
+            )
+
+            lineas.append(
+                f"{informacion['nombre']}\n"
+                f"{obtener_texto('tamano')}: "
+                f"{informacion['tamaño']} bytes\n"
+                f"{obtener_texto('ultima_modificacion')}: "
+                f"{informacion['ultima_modificacion']}\n"
+                f"{obtener_texto('lectura')}: {lectura}\n"
+                f"{obtener_texto('escritura')}: {escritura}"
+            )
+
+        except (OSError, FileNotFoundError) as error:
+
+            lineas.append(f"{ruta.name}: {error}")
+
+    messagebox.showinfo(
+        obtener_texto("informacion_archivos"),
+        "\n\n".join(lineas),
+        parent=root
+    )
+
+
+def mostrar_ayuda_ui():
+
+    ayuda = (
+        f"{obtener_texto('ayuda_titulo')}\n\n"
+        f"{obtener_texto('ayuda_descripcion')}\n\n"
+        f"{obtener_texto('tamano_registro')}: "
+        f"{tamaño_registro} bytes\n\n"
+        f"{obtener_texto('tamano_campos')}:\n"
+        f"{obtener_texto('campo_id')}: {campos['id']} bytes\n"
+        f"{obtener_texto('campo_nombre')}: {campos['nombre']} bytes\n"
+        f"{obtener_texto('campo_telefono')}: {campos['telefono']} bytes\n"
+        f"{obtener_texto('campo_email')}: {campos['email']} bytes\n"
+        f"{obtener_texto('campo_ciudad')}: {campos['ciudad']} bytes"
+    )
+
+    messagebox.showinfo(
+        obtener_texto("ayuda"),
+        ayuda,
+        parent=root
+    )
+
+
+def mostrar_menu_archivo():
+
+    menu = tk.Menu(root, tearoff=0)
+
+    menu.add_command(
+        label=obtener_texto("agregar"),
+        command=agregar_contacto_ui
     )
 
     menu.add_command(
-        label="Nuevo",
-        command=lambda: messagebox.showinfo(
-            "Archivo",
-            "Opción Nuevo seleccionada."
-        )
+        label=obtener_texto("buscar"),
+        command=buscar_contacto_ui
     )
 
     menu.add_command(
-        label="Abrir",
-        command=lambda: messagebox.showinfo(
-            "Archivo",
-            "Opción Abrir seleccionada."
-        )
-    )
-
-    menu.add_command(
-        label="Guardar",
-        command=lambda: messagebox.showinfo(
-            "Archivo",
-            "Opción Guardar seleccionada."
-        )
-    )
-
-    menu.add_separator()
-
-    menu.add_command(
-        label="Salir",
-        command=lambda: messagebox.showinfo(
-            "Archivo",
-            "Opción Salir seleccionada."
-        )
+        label=obtener_texto("modificar"),
+        command=modificar_contacto_ui
     )
 
     menu.post(
@@ -1171,6 +1722,64 @@ def mostrar_menu_archivo(): # menu simulado de archivo
         boton_archivo.winfo_rooty() + boton_archivo.winfo_height()
     )
 
+
+def mostrar_menu_edicion():
+
+    menu = tk.Menu(root, tearoff=0)
+
+    menu.add_command(
+        label=obtener_texto("exportar_json"),
+        command=exportar_json_ui
+    )
+
+    menu.add_command(
+        label=obtener_texto("exportar_pdf"),
+        command=exportar_pdf_ui
+    )
+
+    menu.post(
+        boton_edicion.winfo_rootx(),
+        boton_edicion.winfo_rooty() + boton_edicion.winfo_height()
+    )
+
+
+def mostrar_menu_ver():
+
+    menu = tk.Menu(root, tearoff=0)
+
+    menu.add_command(
+        label=obtener_texto("verificar"),
+        command=verificar_integridad_ui
+    )
+
+    menu.add_command(
+        label=obtener_texto("respaldo"),
+        command=crear_respaldo_ui
+    )
+
+    menu.add_command(
+        label=obtener_texto("informacion"),
+        command=mostrar_informacion_archivos_ui
+    )
+
+    menu.add_separator()
+
+    menu.add_command(
+        label=obtener_texto("ayuda"),
+        command=mostrar_ayuda_ui
+    )
+
+    menu.add_separator()
+
+    menu.add_command(
+        label=obtener_texto("salir"),
+        command=root.destroy
+    )
+
+    menu.post(
+        boton_ver.winfo_rootx(),
+        boton_ver.winfo_rooty() + boton_ver.winfo_height()
+    )
 
 def main():
 
@@ -1309,10 +1918,7 @@ def main():
     boton_edicion = tk.Button(
         panel_izquierdo,
         text="Edición",
-        command=lambda: messagebox.showinfo(
-            "Edición",
-            "Abriendo Edición..."
-        ),
+        command=mostrar_menu_edicion,
         relief="flat",
         bd=0,
         highlightthickness=0,
@@ -1329,10 +1935,7 @@ def main():
     boton_ver = tk.Button(
         panel_izquierdo,
         text="Ver",
-        command=lambda: messagebox.showinfo(
-            "Ver",
-            "Abriendo Ver..."
-        ),
+        command=mostrar_menu_ver,
         relief="flat",
         bd=0,
         highlightthickness=0,

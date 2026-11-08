@@ -1,0 +1,9 @@
+[
+    {
+        "id": 1,
+        "nombre": "Ana López",
+        "telefono": "55551234",
+        "email": "ana@correo.com",
+        "ciudad": "Quetzaltenango"
+    }
+]
