@@ -1,9 +1,44 @@
 [
     {
         "id": 1,
-        "nombre": "Ana López",
+        "nombre": "Ana Banana",
         "telefono": "55551234",
         "email": "ana@correo.com",
         "ciudad": "Quetzaltenango"
+    },
+    {
+        "id": 6789,
+        "nombre": "Bingo Heeler",
+        "telefono": "098765678",
+        "email": "bingo@gmail.com",
+        "ciudad": "1770"
+    },
+    {
+        "id": 9876,
+        "nombre": "Lirilílarilá",
+        "telefono": "+502 09876",
+        "email": "larila@yopmail.com",
+        "ciudad": "Bolivia"
+    },
+    {
+        "id": 9995,
+        "nombre": "Marlon",
+        "telefono": "12345678",
+        "email": "Deps9995@gmail.com",
+        "ciudad": "Chimaltenango"
+    },
+    {
+        "id": 23456,
+        "nombre": "Lupita",
+        "telefono": "234565432",
+        "email": "Lupitamiau@gmail.com",
+        "ciudad": "Quetzaltenango"
+    },
+    {
+        "id": 61978,
+        "nombre": "Mari",
+        "telefono": "87654321",
+        "email": "87654321@gmail.com",
+        "ciudad": "Antigua Guatemala"
     }
 ]

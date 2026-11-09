@@ -242,6 +242,15 @@ def obtener_texto(clave):
             "edicion_elemento": "Export button",
             "ver_elemento": "Tools button",
             "error": "Error",
+            "id_invalido_titulo": "Invalid ID",
+            "id_invalido": "The ID must be a whole number. Letters and decimals are not allowed.",
+            "contacto_no_encontrado": "No contact was found with that ID.",
+            "id_duplicado": "A contact with that ID already exists.",
+            "registro_danado": "The record is incomplete or damaged. This contact cannot be modified.",
+            "indice_danado": "The contact index is damaged or cannot be read.",
+            "archivo_modificado": "WARNING: The contacts file may have been modified outside the application.",
+            "error_archivo": "The file could not be accessed. Check its permissions and try again.",
+            "archivo_no_encontrado": "A required file could not be found.",
 
             "agregar": "Add contact",
             "buscar": "Search by ID",
@@ -279,7 +288,7 @@ def obtener_texto(clave):
             "pdf_correcto": "The PDF was generated successfully.",
             "archivo_texto": "File",
             "integridad": "Integrity",
-            "advertencia_integridad": "WARNING: An integrity issue was detected.",
+            "advertencia_integridad": "WARNING: The contacts file may have been modified outside the application.",
             "integridad_correcta": "The integrity check was completed successfully.",
             "error_integridad": "Could not verify data integrity.",
             "respaldo_zip": "ZIP backup",
@@ -339,6 +348,15 @@ def obtener_texto(clave):
             "archivo_elemento": "Botón Contactos",
             "edicion_elemento": "Botón Exportar",
             "ver_elemento": "Botón Herramientas",
+            "id_invalido_titulo": "ID no válido",
+            "id_invalido": "El ID debe ser un número entero. No se permiten letras ni decimales.",
+            "contacto_no_encontrado": "No se encontró ningún contacto con ese ID.",
+            "id_duplicado": "Ya existe un contacto registrado con ese ID.",
+            "registro_danado": "El registro está incompleto o dañado. No se puede modificar este contacto.",
+            "indice_danado": "El índice de contactos está dañado o no se puede leer.",
+            "archivo_modificado": "ADVERTENCIA: El archivo de contactos pudo haber sido modificado fuera de la aplicación.",
+            "error_archivo": "No se pudo acceder al archivo. Verifica los permisos e inténtalo nuevamente.",
+            "archivo_no_encontrado": "No se pudo encontrar uno de los archivos necesarios.",
 
             "agregar": "Agregar contacto",
             "buscar": "Buscar por ID",
@@ -376,7 +394,7 @@ def obtener_texto(clave):
             "pdf_correcto": "El PDF se generó correctamente.",
             "archivo_texto": "Archivo",
             "integridad": "Integridad",
-            "advertencia_integridad": "ADVERTENCIA: Se detectó un problema de integridad.",
+            "advertencia_integridad": "ADVERTENCIA: El archivo de contactos pudo haber sido modificado fuera de la aplicación.",
             "integridad_correcta": "La comprobación de integridad finalizó correctamente.",
             "error_integridad": "No se pudo comprobar la integridad.",
             "respaldo_zip": "Respaldo ZIP",
@@ -1272,6 +1290,24 @@ def colores_ventana():
     return "#ffffff", "#222222"
 
 
+def obtener_mensaje_error_agenda(error):
+    mensaje = str(error)
+
+    if mensaje == "No existe un contacto con ese ID.":
+        return obtener_texto("contacto_no_encontrado")
+
+    if mensaje == "Ya existe un contacto con ese ID.":
+        return obtener_texto("id_duplicado")
+
+    if mensaje == "El registro está incompleto o dañado.":
+        return obtener_texto("registro_danado")
+
+    if mensaje == "El índice está dañado o no se puede leer.":
+        return obtener_texto("indice_danado")
+
+    return obtener_texto("error_archivo")
+
+
 def mostrar_formulario_contacto(contacto=None):
 
     nuevo = contacto is None
@@ -1354,6 +1390,15 @@ def mostrar_formulario_contacto(contacto=None):
             )
             return
 
+        if not valores["id"].isascii() or not valores["id"].isdigit():
+
+            messagebox.showwarning(
+                obtener_texto("id_invalido_titulo"),
+                obtener_texto("id_invalido"),
+                parent=ventana
+            )
+            return
+
         try:
 
             valores["id"] = int(valores["id"])
@@ -1423,15 +1468,15 @@ def mostrar_formulario_contacto(contacto=None):
 
             messagebox.showerror(
                 obtener_texto("error_guardar"),
-                str(error),
+                obtener_mensaje_error_agenda(error),
                 parent=ventana
             )
 
-        except (OSError, KeyError) as error:
+        except (OSError, KeyError):
 
             messagebox.showerror(
                 obtener_texto("error"),
-                f"{obtener_texto('error_guardar')}\n{error}",
+                obtener_texto("error_archivo"),
                 parent=ventana
             )
 
@@ -1448,14 +1493,35 @@ def agregar_contacto_ui():
 
     mostrar_formulario_contacto()
 
+def solicitar_identificador(titulo):
+
+    valor = simpledialog.askstring(
+        titulo,
+        obtener_texto("ingresar_id"),
+        parent=root
+    )
+
+    if valor is None:
+        return None
+
+    valor = valor.strip()
+
+    if not valor.isdigit():
+
+        messagebox.showwarning(
+            obtener_texto("id_invalido_titulo"),
+            obtener_texto("id_invalido"),
+            parent=root
+        )
+
+        return None
+
+    return int(valor)
 
 def buscar_contacto_ui():
 
-    identificador = simpledialog.askinteger(
-        obtener_texto("buscar_contacto"),
-        obtener_texto("ingresar_id"),
-        parent=root,
-        minvalue=0
+    identificador = solicitar_identificador(
+        obtener_texto("buscar_contacto")
     )
 
     if identificador is None:
@@ -1484,18 +1550,15 @@ def buscar_contacto_ui():
 
         messagebox.showerror(
             obtener_texto("busqueda"),
-            str(error),
+            obtener_mensaje_error_agenda(error),
             parent=root
         )
 
 
 def modificar_contacto_ui():
 
-    identificador = simpledialog.askinteger(
-        obtener_texto("modificar"),
-        obtener_texto("ingresar_id"),
-        parent=root,
-        minvalue=0
+    identificador = solicitar_identificador(
+        obtener_texto("modificar")
     )
 
     if identificador is None:
@@ -1510,7 +1573,7 @@ def modificar_contacto_ui():
 
         messagebox.showerror(
             obtener_texto("modificar"),
-            str(error),
+            obtener_mensaje_error_agenda(error),
             parent=root
         )
 
@@ -1532,7 +1595,7 @@ def exportar_json_ui():
 
         messagebox.showerror(
             obtener_texto("exportacion_json"),
-            str(error),
+            obtener_mensaje_error_agenda(error),
             parent=root
         )
 
@@ -1554,7 +1617,7 @@ def exportar_pdf_ui():
 
         messagebox.showerror(
             obtener_texto("exportacion_pdf"),
-            str(error),
+            obtener_mensaje_error_agenda(error),
             parent=root
         )
 
@@ -1585,11 +1648,11 @@ def verificar_integridad_ui():
                 parent=root
             )
 
-    except (OSError, ValueError) as error:
+    except (OSError, ValueError):
 
         messagebox.showerror(
             obtener_texto("integridad"),
-            f"{obtener_texto('error_integridad')}\n{error}",
+            obtener_texto("error_integridad"),
             parent=root
         )
 
@@ -1619,7 +1682,7 @@ def crear_respaldo_ui():
 
         messagebox.showerror(
             obtener_texto("respaldo_zip"),
-            str(error),
+            obtener_mensaje_error_agenda(error),
             parent=root
         )
 
@@ -1665,9 +1728,11 @@ def mostrar_informacion_archivos_ui():
                 f"{obtener_texto('escritura')}: {escritura}"
             )
 
-        except (OSError, FileNotFoundError) as error:
+        except (OSError, FileNotFoundError):
 
-            lineas.append(f"{ruta.name}: {error}")
+            lineas.append(
+                f"{ruta.name}: {obtener_texto('error_archivo')}"
+            )
 
     messagebox.showinfo(
         obtener_texto("informacion_archivos"),
